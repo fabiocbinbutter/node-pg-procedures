@@ -1,0 +1,22 @@
+{
+  "name": "node-pg-procedures",
+  "version": "0.1.0",
+  "description": "Declare procedures once and have them created for you in both Postgres and Javascript",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fabiocbinbutter/node-pg-procedures.git"
+  },
+  "keywords": [
+    "postgres"
+  ],
+  "author": "Fabio Beltramini",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/fabiocbinbutter/node-pg-procedures/issues"
+  },
+  "homepage": "https://github.com/fabiocbinbutter/node-pg-procedures#readme"
+}
