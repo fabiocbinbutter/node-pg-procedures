@@ -1,6 +1,9 @@
 const util = require('util')
 
 module.exports = function nodePgProcedures(schema, logger){
+		if(!schema || ! schema.filter || !schema.map || !schema.reduce){
+				throw "Expected a schema array"
+			}
 		const sql = sqlFromSchema(schema)
 		const methods = methodsFromSchema(schema, logger)
 		return {
@@ -12,7 +15,15 @@ module.exports = function nodePgProcedures(schema, logger){
 		function auto(db){
 				if(methods.query){throw 'Overwriting the query method is not supported'}
 				Object.assign(db,methods)
-				return Promise.each(sql , sql=>db.query(sql))
+				return sql.reduce(
+						(chain,sql) => chain.then(
+								() => db
+										.query(sql)
+										.catch(e=>{logger.error(sql.split("\n")[0].slice(0,80)+"..."); throw e;})
+							)
+						,
+						Promise.resolve()
+					)
 			}
 
 		function sqlFromSchema(schema){
@@ -31,7 +42,7 @@ module.exports = function nodePgProcedures(schema, logger){
 			var returnValue={}
 			if(logger){
 					returnValue.logquery = function query(str,arr){
-							logger.log("Query",arr)
+							logger.info("Query",arr)
 							return this.query(str,arr).then(logResult("Query"))
 						}
 				}
@@ -39,17 +50,17 @@ module.exports = function nodePgProcedures(schema, logger){
 					const procedureName = schema.procedure
 					const params = schema.parameters.map(p=>p.name)
 					returnValue[procedureName] = function (argsObj){
-							logger && logger.log(procedureName,argsObj)
+							logger && logger.info(procedureName,argsObj)
 							const missing=params.filter(p=>argsObj[p]===undefined)
 							if(missing.length){throw (new Error(
 									"Procedure "+procedureName+" requires "+missing.join(", ")
 									+"; Received "+Object.keys(argsObj).filter(k=>argsObj[k]!==undefined).join(", ")
 								))}
-							const addl=Object.keys(obj).filter(k=>!~params.indexOf(k))
+							const addl=Object.keys(argsObj).filter(k=>!~params.indexOf(k))
 							if(addl.length){logger.warn("PG Procedures: "+procedureName+" extraneous arguments: "+addl.join(", "))}
 							return this.query(
 									"SELECT * FROM "+procedureName+"("+params.map((x,i)=>"$"+(i+1)).join(", ")+")",
-									params.map(p=>obj[p])
+									params.map(p=>argsObj[p])
 								).then(logResult(procedureName))
 						}
 				})
@@ -58,7 +69,7 @@ module.exports = function nodePgProcedures(schema, logger){
 
 			function logResult(procedureName){
 					return function(result){
-							logger.log(
+							logger.info(
 									"> "+procedureName+" ("+result.rows.length+") ",
 									util.inspect(result.rows[0]||"", {colors:true})
 								)
