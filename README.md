@@ -24,12 +24,14 @@ Alternate usage:
 ```
 //Or, use the SQL and methods manually:
 const db = new pg.Pool(cfg.db)
-const db.ready = pgproc(schema,winston)
+const pgproc = pgproc(schema,winston)
 console.log(pgproc)
 //{
 //  methods: {name:function(...){...}, ... },
 //  sql: ["...",...]
 //}
+//Note that the methods will call this.query, so they should somehow
+//get bound to or inherit from your database object
 ```
 
 Example db-schema.cson
