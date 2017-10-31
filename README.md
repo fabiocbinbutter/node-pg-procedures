@@ -11,7 +11,7 @@ const schema = CSON.parse(fs.readFileSync('./db-schema.cson')) //See below
 const pg = require('pg')
 const pgproc = require('node-pg-procedures')
 const db = new pg.Pool(cfg.db)
-const db.ready = pgproc(schema,winston).auto(db).catch(e=>{console.error(e);process.exit(1)})
+db.ready = pgproc(schema,winston).auto(db).catch(e=>{console.error(e);process.exit(1)})
 // ^ Auto adds methods to db
 // , starts running the associated SQL to create these procedures
 // , and returns a promise
