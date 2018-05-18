@@ -1,6 +1,6 @@
 {
   "name": "node-pg-procedures",
-  "version": "0.2.0",
+  "version": "1.0.0",
   "description": "Declare procedures once and have them created for you in both Postgres and Javascript",
   "main": "index.js",
   "scripts": {
