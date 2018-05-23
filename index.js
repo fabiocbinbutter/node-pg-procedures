@@ -51,7 +51,9 @@ module.exports = function nodePgProcedures(schema, logger){
 					const params = schema.parameters.map(p=>p.name)
 					returnValue[procedureName] = function (argsObj){
 							logger && logger.info(procedureName,argsObj)
-							const missing=params.filter(p=>argsObj[p]===undefined)
+							const missing = params
+									.filter(p=>p.default===undefined)
+									.filter(p=>argsObj[p]===undefined)
 							if(missing.length){throw (new Error(
 									"Procedure "+procedureName+" requires "+missing.join(", ")
 									+"; Received "+Object.keys(argsObj).filter(k=>argsObj[k]!==undefined).join(", ")
@@ -60,7 +62,7 @@ module.exports = function nodePgProcedures(schema, logger){
 							if(addl.length){logger.warn("PG Procedures: "+procedureName+" extraneous arguments: "+addl.join(", "))}
 							return this.query(
 									"SELECT * FROM "+procedureName+"("+params.map((x,i)=>"$"+(i+1)).join(", ")+")",
-									params.map(p=>argsObj[p])
+									params.map(p=>argsObj[p]!==undefined?argsObj[p]:p.default)
 								).then(logResult(procedureName))
 						}
 				})
